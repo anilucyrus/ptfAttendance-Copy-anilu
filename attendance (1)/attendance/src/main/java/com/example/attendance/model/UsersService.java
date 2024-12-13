@@ -395,26 +395,38 @@ public class UsersService {
             if (usersModel.getBatch().equalsIgnoreCase("Morning batch")){
                 LocalTime lateMaxTime = LocalTime.of(9,40);
                 if (LocalTime.now().isBefore(lateMaxTime)){
-                    LateRequestModel requestModel = new LateRequestModel();
-                    requestModel.setUserId(lateRequestDto.getUserId());
-                    requestModel.setDate(LocalDate.now());
-                    requestModel.setReason(lateRequestDto.getReason());
-                    requestModel.setStatus(LateRequestStatus.PENDING);
-                    lateRequestRepository.save(requestModel);
-                    return new ResponseEntity<>("Late request marked ",HttpStatus.OK);
+                    Optional<LateRequestModel> lateRequestModelOptional = lateRequestRepository.findByUserIdAndDate(lateRequestDto.getUserId(),lateRequestDto.getDate());
+                    if (lateRequestModelOptional.isPresent()){
+                        return new ResponseEntity<>("Late request already Submitted",HttpStatus.BAD_REQUEST);
+                    }else {
+                        LateRequestModel requestModel = new LateRequestModel();
+                        requestModel.setUserId(lateRequestDto.getUserId());
+                        requestModel.setDate(LocalDate.now());
+                        requestModel.setReason(lateRequestDto.getReason());
+                        requestModel.setStatus(LateRequestStatus.PENDING);
+                        lateRequestRepository.save(requestModel);
+                        return new ResponseEntity<>("Late request marked ",HttpStatus.OK);
+                    }
+
                 }else {
                     return new ResponseEntity<>("Late request is not allowed for this current time ",HttpStatus.CONFLICT);
                 }
             } else if (usersModel.getBatch().equalsIgnoreCase("Evening Batch")) {
                 LocalTime lateMaxTime = LocalTime.of(13,40);
                 if (LocalTime.now().isBefore(lateMaxTime)){
-                    LateRequestModel requestModel = new LateRequestModel();
-                    requestModel.setUserId(lateRequestDto.getUserId());
-                    requestModel.setDate(LocalDate.now());
-                    requestModel.setReason(lateRequestDto.getReason());
-                    requestModel.setStatus(LateRequestStatus.PENDING);
-                    lateRequestRepository.save(requestModel);
-                    return new ResponseEntity<>("Late request marked ",HttpStatus.OK);
+                    Optional<LateRequestModel> lateRequestModelOptional = lateRequestRepository.findByUserIdAndDate(lateRequestDto.getUserId(),lateRequestDto.getDate());
+                    if (lateRequestModelOptional.isPresent()){
+                        return new ResponseEntity<>("Late request already Submitted",HttpStatus.BAD_REQUEST);
+                    }else {
+                        LateRequestModel requestModel = new LateRequestModel();
+                        requestModel.setUserId(lateRequestDto.getUserId());
+                        requestModel.setDate(LocalDate.now());
+                        requestModel.setReason(lateRequestDto.getReason());
+                        requestModel.setStatus(LateRequestStatus.PENDING);
+                        lateRequestRepository.save(requestModel);
+                        return new ResponseEntity<>("Late request marked ",HttpStatus.OK);
+                    }
+
                 }else {
                     return new ResponseEntity<>("Late request is not allowed for this current time ",HttpStatus.CONFLICT);
                 }
