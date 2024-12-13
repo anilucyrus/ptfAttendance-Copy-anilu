@@ -100,11 +100,12 @@ public class UsersService {
         if (usersModelOptional.isPresent()) {
             UsersModel usersModel = usersModelOptional.get();
             String batchType = usersModel.getBatch();
-            if (inScanDto.getType().equalsIgnoreCase("in")) {
+            String typeData = inScanDto.getType();
+            if (typeData!=null&&typeData.equalsIgnoreCase("in")) {
                 LocalDate currentDate = LocalDate.now();
                 if (currentDate.equals(inScanDto.getPresentDate())) {
                     if (batchType.equalsIgnoreCase("morning batch")) {
-                        LocalTime allowedTime = LocalTime.of(9, 41);
+                        LocalTime allowedTime = LocalTime.of(19, 41);
                         if (allowedTime.isBefore(inScanDto.getPresentTime())) {
                             Attendance attendance = new Attendance();
                             attendance.setAttendanceDate(inScanDto.getPresentDate());
@@ -167,7 +168,7 @@ public class UsersService {
                         return new ResponseEntity<>("Batch type is n't valid", HttpStatus.NOT_FOUND);
                     }
                 }return new ResponseEntity<>("Current date is not correct",HttpStatus.BAD_REQUEST);
-            }else if (inScanDto.getType().equalsIgnoreCase("out")) {
+            }else if (typeData!=null &&typeData.equalsIgnoreCase("out")) {
                 LocalDate currentDate = LocalDate.now();
                 if (currentDate.equals(inScanDto.getPresentDate())) {
                     Optional<Attendance> attendanceOptional = attendanceRepository.findByUserId(userId);

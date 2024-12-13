@@ -79,7 +79,7 @@ public class UserRegistrationCcontroller {
         return new ResponseEntity<>("Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @PostMapping("/inScanQR/{userId}")
+    @PostMapping(path="/inScanQR")
 //    public ResponseEntity<ScanResponseDto> inScanQR(@PathVariable Long userId,@RequestBody InScanDto inScanDto) {
 //        return usersService.handleScan(userId, true,inScanDto);
 //    }
