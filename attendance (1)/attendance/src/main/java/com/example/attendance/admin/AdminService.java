@@ -117,7 +117,7 @@ public class AdminService {
                 leaveRequestRepository.save(leaveRequest);
 
                 // Handle Attendance for the leave period
-                handleAttendanceForLeave(leaveRequest);
+//                handleAttendanceForLeave(leaveRequest);
 
                 // Send email confirmation to the user
                 Optional<UsersModel> userOptional = usersRepository.findById(leaveRequest.getUserId());
