@@ -11,6 +11,7 @@ import com.example.attendance.late.LateRequestStatus;
 import com.example.attendance.leave.LeaveRequestModel;
 import com.example.attendance.leave.LeaveRequestRepository;
 import com.example.attendance.leave.LeaveRequestStatus;
+import com.example.attendance.model.ForgotPasswordDto;
 import com.example.attendance.model.UsersModel;
 import com.example.attendance.model.UsersRepository;
 import com.example.attendance.qr.QRCodeService;
@@ -126,7 +127,7 @@ public class AdminService {
                     sendLeaveRequestApprovalEmail(user.getEmail(), leaveRequest);
                 }
 
-                return new ResponseEntity<>("Leave request approved and attendance updated", HttpStatus.OK);
+                return new ResponseEntity<>("Leave request approved", HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("Leave request is already processed", HttpStatus.BAD_REQUEST);
             }
@@ -326,6 +327,39 @@ public class AdminService {
         return adminRepository.save(admin);
     }
 
+    public ResponseEntity<?> forgotPassword(ForgotPasswordDto forgotPasswordDto) {
+        Optional<AdminModel> adminOptional = adminRepository.findByEmail(forgotPasswordDto.getEmail());
+        if (adminOptional.isPresent()) {
+            String temporaryPassword = UUID.randomUUID().toString().substring(0, 8);
+            AdminModel admin = adminOptional.get();
+            admin.setPassword(temporaryPassword);
+            adminRepository.save(admin);
+//            public ResponseEntity<?> forgotPassword(ForgotPasswordDto forgotPasswordDto) {
+//                Optional<UsersModel> userOptional = usersRepository.findByEmail(forgotPasswordDto.getEmail());
+//        if (userOptional.isPresent()) {
+//            String temporaryPassword = UUID.randomUUID().toString().substring(0, 8);
+//            UsersModel user = userOptional.get();
+//            user.setPassword(temporaryPassword);
+//            usersRepository.save(user);
+
+
+            sendForgotPasswordEmail(admin.getEmail(), temporaryPassword);
+
+            return new ResponseEntity<>("Temporary password sent to your email", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Email not found", HttpStatus.NOT_FOUND);
+        }
+    }
+
+
+    private void sendForgotPasswordEmail(String toEmail, String temporaryPassword) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("Forgot Password Assistance");
+        message.setText("Your temporary password is: " + temporaryPassword + ". Please use it to log in and reset your password.");
+
+        mailSender.send(message);
+    }
 
 
 

@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -94,6 +95,73 @@ public class UsersService {
 
         mailSender.send(message);
     }
+
+
+    public UsersModel updateUserPassword(Long id, UserDto userDto) throws Exception {
+        Optional<UsersModel> existingUser = usersRepository.findById(id);
+        if (!existingUser.isPresent()) {
+            throw new Exception("User Not Found");
+        }
+        UsersModel user = existingUser.get();
+        user.setPassword(userDto.getPassword());
+        return usersRepository.save(user);
+    }
+
+
+
+
+    public ResponseEntity<?> updateUser(Long id, UserDto userDto) {
+        Optional<UsersModel> userOptional = usersRepository.findById(id);
+        if (userOptional.isPresent()) {
+            UsersModel user = userOptional.get();
+            user.setName(userDto.getName());
+            user.setEmail(userDto.getEmail());
+            user.setPassword(userDto.getPassword());
+            user.setBatch(userDto.getBatch());
+            user.setPhoneNumber(userDto.getPhoneNumber());
+            UsersModel updatedUser = usersRepository.save(user);
+
+            URegistrationResponse response = new URegistrationResponse(
+                    updatedUser.getId(),
+                    updatedUser.getName(),
+                    updatedUser.getEmail(),
+                    updatedUser.getBatch(),
+                    updatedUser.getPhoneNumber()
+            );
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+    }
+
+
+    public ResponseEntity<?> forgotPassword(ForgotPasswordDto forgotPasswordDto) {
+        Optional<UsersModel> userOptional = usersRepository.findByEmail(forgotPasswordDto.getEmail());
+        if (userOptional.isPresent()) {
+            String temporaryPassword = UUID.randomUUID().toString().substring(0, 8);
+            UsersModel user = userOptional.get();
+            user.setPassword(temporaryPassword);
+            usersRepository.save(user);
+
+            sendForgotPasswordEmail(user.getEmail(), temporaryPassword);
+
+            return new ResponseEntity<>("Temporary password sent to your email", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Email not found", HttpStatus.NOT_FOUND);
+        }
+    }
+
+
+    private void sendForgotPasswordEmail(String toEmail, String temporaryPassword) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("Forgot Password Assistance");
+        message.setText("Your temporary password is: " + temporaryPassword + ". Please use it to log in and reset your password.");
+
+        mailSender.send(message);
+    }
+
 
     public ResponseEntity<?> scanInAndOut(Long userId, InScanDto inScanDto) {
         Optional<UsersModel> usersModelOptional = usersRepository.findById(userId);
@@ -362,19 +430,19 @@ public class UsersService {
     }
 
     //27/7/24
-    public UsersModel updateUserPassword(Long id, UserDto userDto) throws Exception {
-        Optional<UsersModel> existingUser = usersRepository.findById(id);
-        if (!existingUser.isPresent()) {
-            throw new Exception("User Not Found");
-        }
-        UsersModel user = existingUser.get();
-        user.setPassword(userDto.getPassword());
-        return usersRepository.save(user);
-    }
-
-
-
-
+//    public UsersModel updateUserPassword(Long id, UserDto userDto) throws Exception {
+//        Optional<UsersModel> existingUser = usersRepository.findById(id);
+//        if (!existingUser.isPresent()) {
+//            throw new Exception("User Not Found");
+//        }
+//        UsersModel user = existingUser.get();
+//        user.setPassword(userDto.getPassword());
+//        return usersRepository.save(user);
+//    }
+//
+//
+//
+//
     public boolean deleteUser(Long id) {
         Optional<UsersModel> existingUser = usersRepository.findById(id);
         if (!existingUser.isPresent()) {

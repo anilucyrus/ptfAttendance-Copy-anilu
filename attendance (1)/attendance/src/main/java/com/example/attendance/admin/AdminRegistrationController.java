@@ -8,6 +8,7 @@ import com.example.attendance.late.LateRequestStatus;
 import com.example.attendance.leave.LeaveRequestModel;
 import com.example.attendance.leave.LeaveRequestRepository;
 import com.example.attendance.leave.LeaveRequestStatus;
+import com.example.attendance.model.ForgotPasswordDto;
 import com.example.attendance.model.UsersModel;
 import com.example.attendance.model.UsersService;
 import com.example.attendance.qr.QRCodeService;
@@ -53,6 +54,8 @@ public class AdminRegistrationController {
     @Autowired
     private AttendanceRepository attendanceRepository;
 
+    @Autowired
+    private AdminRepository adminRepository;
 
     @PostMapping(path = "/reg")
     public ResponseEntity<?> registration(@RequestBody AdminDto adminDto) {
@@ -134,7 +137,31 @@ public class AdminRegistrationController {
         }
     }
 
+    @PostMapping(path = "/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordDto forgotPasswordDto) {
+        try {
+            // Validate request data
+            if (!forgotPasswordDto.getNewPassword().equals(forgotPasswordDto.getConfirmPassword())) {
+                return new ResponseEntity<>("Passwords do not match", HttpStatus.BAD_REQUEST);
+            }
 
+            // Check if user exists
+            Optional<AdminModel> adminOptional = adminRepository.findByEmail(forgotPasswordDto.getEmail());
+            if (adminOptional.isEmpty()) {
+                return new ResponseEntity<>("Admin not found with the provided email", HttpStatus.NOT_FOUND);
+            }
+
+            // Update admin password
+            AdminModel admin = adminOptional.get();
+            admin.setPassword(forgotPasswordDto.getNewPassword()); // Ensure password is securely hashed
+            adminRepository.save(admin);
+
+            return new ResponseEntity<>("Password updated successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 //    // Add method to generate QR code after scanning
 //    @GetMapping(path = "/generateQr")

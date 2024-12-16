@@ -28,6 +28,8 @@ public class UserRegistrationCcontroller {
     @Autowired
     private LateRequestRepository lateRequestRepository;
 
+    @Autowired
+    private UsersRepository usersRepository;
 
     @Autowired
     private AttendanceRepository attendanceRepository;
@@ -78,6 +80,74 @@ public class UserRegistrationCcontroller {
         }
         return new ResponseEntity<>("Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @PutMapping(path = "/updatePassword/{id}")
+    public ResponseEntity<?> updateUserPassword(@PathVariable Long id, @RequestBody UserDto userDto) {
+        try {
+            UsersModel updatedUser = usersService.updateUserPassword(id, userDto);
+            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    // New endpoint for deleting a user
+    @DeleteMapping(path = "/delete/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        try {
+            boolean isDeleted = usersService.deleteUser(id);
+            if (isDeleted) {
+                return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new ResponseEntity<>("Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // New endpoint for updating a user
+    @PutMapping(path = "/update/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
+        try {
+            return usersService.updateUser(id, userDto);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new ResponseEntity<>("Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+
+    @PostMapping(path = "/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordDto forgotPasswordDto) {
+        try {
+            // Validate request data
+            if (!forgotPasswordDto.getNewPassword().equals(forgotPasswordDto.getConfirmPassword())) {
+                return new ResponseEntity<>("Passwords do not match", HttpStatus.BAD_REQUEST);
+            }
+
+            // Check if user exists
+            Optional<UsersModel> userOptional = usersRepository.findByEmail(forgotPasswordDto.getEmail());
+            if (userOptional.isEmpty()) {
+                return new ResponseEntity<>("User not found with the provided email", HttpStatus.NOT_FOUND);
+            }
+
+            // Update user's password
+            UsersModel user = userOptional.get();
+            user.setPassword(forgotPasswordDto.getNewPassword()); // Ensure password is securely hashed
+            usersRepository.save(user);
+
+            return new ResponseEntity<>("Password updated successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     @PostMapping(path="/inScanQR")
 //    public ResponseEntity<ScanResponseDto> inScanQR(@PathVariable Long userId,@RequestBody InScanDto inScanDto) {
