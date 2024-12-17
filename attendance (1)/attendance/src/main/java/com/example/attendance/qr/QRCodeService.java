@@ -12,57 +12,60 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.UUID;
 
 @Service
 public class QRCodeService {
 
 
-
-    private static final String QR_CODE_DATA = "Attendance System"; // Or generate dynamically if required
     private static final int QR_CODE_WIDTH = 250;
     private static final int QR_CODE_HEIGHT = 250;
 
-    private String currentQRCode;
+    private String currentQRCode; // Variable to store the QR code
 
-    // Method to generate a new QR code
-    private String generateQRCode() throws WriterException, IOException {
+    // Generate QR Code as a Base64 string
+    public String generateQRCodeAsString(String qrContent) throws WriterException, IOException {
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
-        BitMatrix bitMatrix = qrCodeWriter.encode(QR_CODE_DATA, BarcodeFormat.QR_CODE, QR_CODE_WIDTH, QR_CODE_HEIGHT);
-        ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
-        MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
-        byte[] imageData = pngOutputStream.toByteArray();
+        BitMatrix bitMatrix = qrCodeWriter.encode(qrContent, BarcodeFormat.QR_CODE, QR_CODE_WIDTH, QR_CODE_HEIGHT);
 
-        // Return a base64-encoded string for use in your application
-        return java.util.Base64.getEncoder().encodeToString(imageData);
+        // Convert QR code to byte array
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        MatrixToImageWriter.writeToStream(bitMatrix, "PNG", outputStream);
+        byte[] qrImageData = outputStream.toByteArray();
+
+        // Convert byte array to Base64 string
+        return Base64.getEncoder().encodeToString(qrImageData);
     }
 
-    // This method runs when the application starts
+    // Method to generate a QR code with the current date and time
+    private String generateCurrentQRCode() throws WriterException, IOException {
+        // Get current date and time
+        LocalDateTime now = LocalDateTime.now();
+        String formattedDate = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String formattedTime = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+
+        // Generate QR content
+        String qrContent = "date:" + formattedDate + "  time:" + formattedTime;
+
+        return generateQRCodeAsString(qrContent);
+    }
+
+    // Automatically generate QR code at startup
     @PostConstruct
     public void generateInitialQRCode() {
         try {
-            this.currentQRCode = generateQRCode();
+            this.currentQRCode = generateCurrentQRCode();
             System.out.println("Initial QR Code Generated: " + this.currentQRCode);
         } catch (WriterException | IOException e) {
             e.printStackTrace();
         }
     }
 
-    // Scheduled task to regenerate QR code every 10 seconds (if needed)
-//    @Scheduled(fixedRate = 10000)  // 10000 ms = 10 seconds
-    public void regenerateQRCode() {
-        try {
-            this.currentQRCode = generateQRCode();
-            System.out.println("QR Code Regenerated: " + this.currentQRCode);
-        } catch (WriterException | IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Get the current QR code (base64 string)
+    // Getter for the current QR code
     public String getCurrentQRCode() {
         return this.currentQRCode;
     }
-
-
 }

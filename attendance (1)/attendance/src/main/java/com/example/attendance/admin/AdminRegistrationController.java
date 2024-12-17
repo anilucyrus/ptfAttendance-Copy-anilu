@@ -227,27 +227,21 @@ public class AdminRegistrationController {
 //        }
 //    }
 
-    // Add method to generate QR code with current date and time
+
+    // Endpoint to retrieve the current QR code
     @GetMapping(path = "/generateQr")
-    public ResponseEntity<?> generateQr(HttpServletResponse response) {
+    public ResponseEntity<?> getQRCode() {
         try {
-            // Get the current date and time
-            LocalDateTime now = LocalDateTime.now();
-            String formattedDate = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            String formattedTime = now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-
-            // Create content for the QR code
-            String qrContent = "date:" + formattedDate + "  time:" + formattedTime;
-
-            // Generate the QR code
-            generateQrCode(qrContent, response);
-
-            return new ResponseEntity<>("QR code generated successfully", HttpStatus.OK);
-        } catch (WriterException | IOException e) {
+            // Retrieve the pre-generated QR code
+            String currentQRCode = qrCodeService.getCurrentQRCode();
+            return new ResponseEntity<>(currentQRCode, HttpStatus.OK);
+        } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>("Error generating QR code", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error retrieving QR code", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 
     // Method to generate and write QR code to response
     private void generateQrCode(String content, HttpServletResponse response) throws WriterException, IOException {
@@ -274,6 +268,7 @@ public class AdminRegistrationController {
             return new ResponseEntity<>("Error handling scan", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     @GetMapping("/getAllUsers")
     public ResponseEntity<List<UsersModel>> getAllUsers() {

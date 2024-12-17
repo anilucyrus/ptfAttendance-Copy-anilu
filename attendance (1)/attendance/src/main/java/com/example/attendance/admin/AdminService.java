@@ -85,7 +85,7 @@ public class AdminService {
         System.out.println("New Token Generated: " + newToken);
 
         // Regenerate QR Code after scan
-        qrCodeService.regenerateQRCode();  // This will regenerate QR code every time a scan happens
+        //qrCodeService.regenerateQRCode();  // This will regenerate QR code every time a scan happens
     }
 
 
